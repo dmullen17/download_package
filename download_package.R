@@ -16,7 +16,7 @@
 #' @param check_first (logical) Optional. Whether to check the PIDs passed in as aruments exist on the MN before continuing. Checks that objects exist and are of the right format type. Setting this to FALSE speeds up the function, especially when the package has many elements.
 #'
 #' @example
-#'\dontrun{
+#' \dontrun{
 #' cn <- CNode("PROD")
 #' mnReal <- getMNode(cn, "urn:node:ARCTIC")
 #' downloadPackage(mn = mnReal, resource_map_pid = "resource_map_urn:uuid:2b4e4174-4e4b-4a46-8ab0-cc032eda8269")
