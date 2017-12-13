@@ -10,7 +10,7 @@
 #'
 #' @param mn (MNode) The Member Node to download from.
 #' @param resource_map_pid (chraracter) The identifier of the Resource Map for the package to download.
-#' @param download_directory (character) The path of the directory to download the package to.
+#' @param download_directory (character) The path of the directory to download the package to. Defaults to the current working directory.
 #' @param check_download_size (logical) Optional.  Whether to check the total download size before continuing.  Setting this to FALSE speeds up the function, especially when the package has many elements.
 #' @param download_child_packages (logical) Optional.  Whether to download data from child packages of the selected package.
 #' @param check_first (logical) Optional. Whether to check the PIDs passed in as aruments exist on the MN before continuing. Checks that objects exist and are of the right format type. Setting this to FALSE speeds up the function, especially when the package has many elements.
@@ -19,8 +19,7 @@
 #'\dontrun{
 #' cn <- CNode('PROD')
 #' mnReal <- getMNode(cn,'urn:node:ARCTIC')
-#' wd <- getwd()
-#' downloadPackage(mn = mnReal, resource_map_pid = "resource_map_urn:uuid:2b4e4174-4e4b-4a46-8ab0-cc032eda8269", download_directory = wd)
+#' downloadPackage(mn = mnReal, resource_map_pid = "resource_map_urn:uuid:2b4e4174-4e4b-4a46-8ab0-cc032eda8269")
 #' }
 #'
 #' @import dataone
@@ -29,7 +28,7 @@
 #' @export
 download_package <- function(mn,
                              resource_map_pid,
-                             download_directory,
+                             download_directory = getwd(),
                              check_download_size = TRUE,
                              download_child_packages = TRUE,
                              check_first = TRUE) {
@@ -147,7 +146,7 @@ download_package <- function(mn,
   message(paste0("\nDownloading data objects to ", download_directory))
   for (i in 1:n) {
     dataObj <- dataone::getObject(mn, data_pids[i], check = check_first)
-    writeBin(dataObj, paste(download_directory, fileNames[i], sep='/'))
+    writeBin(dataObj, file.path(download_directory, fileNames[i]))
     setTxtProgressBar(progressBar, i)
   }
 
