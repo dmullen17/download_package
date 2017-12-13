@@ -1,4 +1,4 @@
-#' downloadPackage.R
+#' download_package.R
 #'
 #' @title Utility function for downloading DataOne packages.
 #'
@@ -26,12 +26,12 @@
 #' @import pbapply
 #'
 #' @export
-downloadPackage <- function(mn,
-                            resource_map_pid,
-                            download_directory,
-                            check_download_size = TRUE,
-                            download_child_packages = TRUE,
-                            check_first = TRUE) {
+download_package <- function(mn,
+                             resource_map_pid,
+                             download_directory,
+                             check_download_size = TRUE,
+                             download_child_packages = TRUE,
+                             check_first = TRUE) {
   ## Possible Changes:
   #1 Make mn argument a character of "ADC", "KNB", etc. with switch statements based on node? -- probably overkill
   #2 How many child levels should it support? -- 3 or 4 max
