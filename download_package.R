@@ -8,7 +8,7 @@
 #' This function will also download any data objects it finds in any child Data Packages of the input data package.
 #' If you would only like to download data from one Data Package, set \code{download_child_packages} to \code{FALSE}.
 #'
-#' @param mn (MNode) The MNode instance to be changed.
+#' @param mn (MNode) The Member Node to download from
 #' @param resource_map_pid (chraracter) The PID of the resource map for the package to download.
 #' @param download_directory (character) The path of the directory to download the package to.
 #' @param check_download_size (logical) Optional.  Whether to check the total download size before continuing.  Setting this to FALSE speeds up the function, especially when the package has many elements.
