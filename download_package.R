@@ -1,11 +1,12 @@
-#' download_package.R
+#' Download a Data Package
 #'
-#' @title Utility function for downloading DataOne packages.
+#' This function downloads all of the Data Objects in a Data Package to the local filesystem.
+#' It is particularly useful when a Data Package is too large to download using the web interface.
 #'
-#' @description This function downloads all of the data objects in a DataOne package when a "Download All" button is not available.
-#' Setting check_download_size = T is recommended if you are uncertain of the total download size.
-#' This function will also download any data objects it finds in any children of the input data package.  If you would only like to download data from
-#' one package set download_child_packages = F, or use the function on a package without children.
+#' Setting \code{check_download_size} to \code{TRUE} is recommended if you are uncertain of the total download size and want to avoid downloading very large Data Packages.
+#'
+#' This function will also download any data objects it finds in any child Data Packages of the input data package.
+#' If you would only like to download data from one Data Package, set \code{download_child_packages} to \code{FALSE}.
 #'
 #' @param mn (MNode) The MNode instance to be changed.
 #' @param resource_map_pid (chraracter) The PID of the resource map for the package to download.
