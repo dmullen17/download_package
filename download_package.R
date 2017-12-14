@@ -63,7 +63,7 @@ download_package <- function(mn,
       message("\nDownloading identifiers from child packages")
 
       # Loop through child packages and extract pids using get_package()
-      for (i in 1:n) {
+      for (i in seq_len(n)) {
         child_packages[[i]] <- arcticdatautils::get_package(mn, package$child_packages[i])
         setTxtProgressBar(progressBar, i)
       }
@@ -80,7 +80,7 @@ download_package <- function(mn,
 
   # Select data pids from child packages, if they exist
   if (exists("child_packages")) {
-    for (i in 1:length(child_packages)) {
+    for (i in seq_len(length(child_packages))) {
       # Check if child package contains data
       if (length(child_packages[[i]]$data != 0)) {
         data_pids <- c(data_pids, child_packages[[i]]$data)
