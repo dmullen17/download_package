@@ -100,10 +100,10 @@ download_package <- function(mn,
   # Check total download size
   if (check_download_size) {
     message("\nDownloading file sizes from system metadata.  This could take a significant amount of time if the number of data objects is large")
-    downloadSize <- sum(fileSizes, na.rm = T)
     fileSizes <- pbsapply(data_pids, function(pid) {
       dataone::getSystemMetadata(mn, pid)@size
     })
+    downloadSize <- sum(fileSizes, na.rm = TRUE)
     rm(fileSizes)
 
     # Simplify downloadSize to readable format
