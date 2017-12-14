@@ -54,7 +54,6 @@ download_package <- function(mn,
 
   # Get child package pids
   if (download_child_packages) {
-
     # Check that child packages exist
     if (length(package$child_packages) != 0) {
       child_packages <- list()
@@ -96,9 +95,11 @@ download_package <- function(mn,
   # Check total download size
   if (check_download_size) {
     message("\nDownloading file sizes from system metadata.  This could take a significant amount of time if the number of data objects is large")
+
     fileSizes <- pbapply::pbsapply(data_pids, function(pid) {
       dataone::getSystemMetadata(mn, pid)@size
     })
+
     downloadSize <- sum(fileSizes, na.rm = TRUE)
 
     # Simplify downloadSize to readable format
@@ -119,6 +120,7 @@ download_package <- function(mn,
     # Prompt user if they wish to continue based on total download size
     message(paste0("\nYour download is approximately ", downloadSize, unit, "\n"))
     continue <- readline(prompt = paste0("Proceed with the download (", downloadSize, unit, ")? Input yes/no: "))
+
     while (!(continue %in% c("yes", "no"))) {
       message("Type yes or no without quotation marks or capitals\n")
       continue <- readline(prompt = "Proceed with the download? Input yes/no: ")
@@ -132,16 +134,18 @@ download_package <- function(mn,
 
   # Download data pids to selected directory
   message("\nDownloading file names from system metadata.  This could take a significant amount of time if the number of data objects is large")
+
   fileNames <- pbapply::pbsapply(data_pids, function(pid) {
     dataone::getSystemMetadata(mn, pid)@fileName
   })
+
   n <- length(data_pids)
   progressBar <- txtProgressBar(min = 0, max = n, style = 3)
   message(paste0("\nDownloading data objects to ", download_directory))
-  for (i in 1:n) {
+
+  for (i in seq_len(n)) {
     dataObj <- dataone::getObject(mn, data_pids[i], check = check_first)
     writeBin(dataObj, file.path(download_directory, fileNames[i]))
     setTxtProgressBar(progressBar, i)
   }
-
 }
