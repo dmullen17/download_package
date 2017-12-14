@@ -22,9 +22,6 @@
 #' downloadPackage(mn = mnReal, resource_map_pid = "resource_map_urn:uuid:2b4e4174-4e4b-4a46-8ab0-cc032eda8269")
 #' }
 #'
-#' @import dataone
-#' @import pbapply
-#'
 #' @export
 download_package <- function(mn,
                              resource_map_pid,
@@ -40,6 +37,12 @@ download_package <- function(mn,
   ## Comments:
   #1 would be ideal not to have to call getSystemMetadata once for each file name.  Could remove check_download_size from arguments (not optional) - this would reduce
   # getSystemMetadata calls in half, assuming they are necessary to return the fileNames
+
+  # Stop if the user doesn't have the pbapply package installed
+  if (!requireNamespace("pbapply")) {
+    stop(call. = FALSE,
+         "The pbapply package is required to show progress. Please install it and try again.")
+  }
 
   # Check that input arguments are in the correct format
   stopifnot(is.character(resource_map_pid))
@@ -100,7 +103,7 @@ download_package <- function(mn,
   # Check total download size
   if (check_download_size) {
     message("\nDownloading file sizes from system metadata.  This could take a significant amount of time if the number of data objects is large")
-    fileSizes <- pbsapply(data_pids, function(pid) {
+    fileSizes <- pbapply::pbsapply(data_pids, function(pid) {
       dataone::getSystemMetadata(mn, pid)@size
     })
     downloadSize <- sum(fileSizes, na.rm = TRUE)
@@ -142,7 +145,9 @@ download_package <- function(mn,
 
   # Download data pids to selected directory
   message("\nDownloading file names from system metadata.  This could take a significant amount of time if the number of data objects is large")
-  fileNames <- pbsapply(data_pids, function(pid) { dataone::getSystemMetadata(mn, pid)@fileName })
+  fileNames <- pbapply::pbsapply(data_pids, function(pid) {
+    dataone::getSystemMetadata(mn, pid)@fileName
+  })
   n <- length(data_pids)
   progressBar <- txtProgressBar(min = 0, max = n, style = 3)
   message(paste0("\nDownloading data objects to ", download_directory))
