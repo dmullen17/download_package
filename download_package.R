@@ -70,9 +70,6 @@ download_package <- function(mn,
         child_packages[[i]] <- arcticdatautils::get_package(mn, package$child_packages[i])
         setTxtProgressBar(progressBar, i)
       }
-
-      rm(n)
-      rm(progressBar)
     }
   }
 
@@ -92,7 +89,6 @@ download_package <- function(mn,
         data_pids <- c(data_pids, child_packages[[i]]$data)
       }
     }
-    rm(child_packages)
   }
 
   # Check that data exists
@@ -107,7 +103,6 @@ download_package <- function(mn,
       dataone::getSystemMetadata(mn, pid)@size
     })
     downloadSize <- sum(fileSizes, na.rm = TRUE)
-    rm(fileSizes)
 
     # Simplify downloadSize to readable format
     if (downloadSize >= 1e+12) {
@@ -136,11 +131,6 @@ download_package <- function(mn,
     if (continue == "no") {
       stop("Download cancelled by user")
     }
-
-    rm(downloadSize)
-    rm(unit)
-    rm(continue)
-
   }
 
   # Download data pids to selected directory
