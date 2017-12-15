@@ -178,4 +178,5 @@ download_package <- function(mn,
 
   close(progressBar)
 
+  return(invisible())
 }
