@@ -88,6 +88,8 @@ download_package <- function(mn,
         setTxtProgressBar(progressBar, i)
         arcticdatautils::get_package(mn, package$child_packages[i], file_names = TRUE)
       })
+
+      close(progressBar)
     }
   }
 
@@ -173,4 +175,7 @@ download_package <- function(mn,
 
     setTxtProgressBar(progressBar, i)
   })
+
+  close(progressBar)
+
 }
