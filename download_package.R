@@ -79,9 +79,9 @@ download_package <- function(mn,
   if (download_child_packages) {
     # Check that child packages exist
     if (length(package$child_packages) != 0) {
-      n <- length(package$child_packages)
-      progressBar <- txtProgressBar(min = 0, max = n, style = 3)
-      message("\nDownloading identifiers from child packages")
+      n_child_packages <- length(package$child_packages)
+      progressBar <- txtProgressBar(min = 0, max = n_child_packages, style = 3)
+      message("\nDownloading identifiers from child packages...")
 
       # Loop through child packages and extract pids using get_package()
       child_packages <- lapply(seq_len(n_child_packages), function(i) {
