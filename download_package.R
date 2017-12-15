@@ -84,10 +84,10 @@ download_package <- function(mn,
       message("\nDownloading identifiers from child packages")
 
       # Loop through child packages and extract pids using get_package()
-      for (i in seq_len(n)) {
-        child_packages[[i]] <- arcticdatautils::get_package(mn, package$child_packages[i])
+      child_packages <- lapply(seq_len(n_child_packages), function(i) {
         setTxtProgressBar(progressBar, i)
-      }
+        arcticdatautils::get_package(mn, package$child_packages[i], file_names = TRUE)
+      })
     }
   }
 
