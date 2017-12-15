@@ -1,3 +1,25 @@
+#' Calculate the total size of the Objects in a Data Package
+#'
+#' @param node (MNode/CNode) The Node to query for Object sizes
+#' @param resource_map_pid (character) The identifier of the Data Package's Resource Map
+#' @param formatType (character) Optional. Filter to just Objects of the given formatType. One of METADATA, RESOURCE, or DATA or * for all types
+#'
+#' @return (numeric) The sum of all Object sizes in the Data Package
+get_package_size <- function(node, package_identifier, formatType = "*") {
+  size_query <- dataone::query(node,
+                               paste0("q=resourceMap:\"",
+                                      package_identifier,
+                                      "\"+AND+formatType:",
+                                      formatType, "&fl=size"),
+                               as = "data.frame")
+
+  if (nrow(size_query) == 0) {
+    return(0)
+  }
+
+  sum(as.integer(size_query$size))
+}
+
 #' Download a Data Package
 #'
 #' This function downloads all of the Data Objects in a Data Package to the local filesystem.
@@ -94,13 +116,15 @@ download_package <- function(mn,
 
   # Check total download size
   if (check_download_size) {
-    message("\nDownloading file sizes from system metadata.  This could take a significant amount of time if the number of data objects is large")
-
-    fileSizes <- pbapply::pbsapply(data_pids, function(pid) {
-      dataone::getSystemMetadata(mn, pid)@size
+    child_package_resource_map_pids <- lapply(child_packages, function(package) {
+      package$resource_map
     })
 
-    downloadSize <- sum(fileSizes, na.rm = TRUE)
+    downloadSize <- sum(
+      vapply(c(resource_map_pid, child_package_resource_map_pids), function(pid) {
+        get_package_size(mn, pid)
+      }, 0)
+    )
 
     # Simplify downloadSize to readable format
     if (downloadSize >= 1e+12) {
