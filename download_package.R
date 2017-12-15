@@ -154,19 +154,23 @@ download_package <- function(mn,
   }
 
   # Download data pids to selected directory
-  message("\nDownloading file names from system metadata.  This could take a significant amount of time if the number of data objects is large")
-
-  fileNames <- pbapply::pbsapply(data_pids, function(pid) {
-    dataone::getSystemMetadata(mn, pid)@fileName
-  })
-
-  n <- length(data_pids)
-  progressBar <- txtProgressBar(min = 0, max = n, style = 3)
+  n_data_objects <- length(data_pids)
+  file_names <- names(data_pids)
+  progressBar <- txtProgressBar(min = 0, max = n_data_objects, style = 3)
   message(paste0("\nDownloading data objects to ", download_directory))
 
-  for (i in seq_len(n)) {
-    dataObj <- dataone::getObject(mn, data_pids[i], check = check_first)
-    writeBin(dataObj, file.path(download_directory, fileNames[i]))
+  lapply(seq_len(n_data_objects), function(i) {
+    file_name <- ifelse(is.na(file_names[i]), gsub('[^[:alnum:]]', '_', data_pids[i]), file_names[i])
+    out_path <- file.path(download_directory, file_name)
+
+    if (file.exists(out_path)) {
+      warning(call. = FALSE,
+              paste0("The file ", out_path, " already exists. Skipping download."))
+    } else {
+      dataObj <- dataone::getObject(mn, data_pids[i])
+      writeBin(dataObj, out_path)
+    }
+
     setTxtProgressBar(progressBar, i)
-  }
+  })
 }
