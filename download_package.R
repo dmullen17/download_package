@@ -72,7 +72,7 @@ download_package <- function(mn,
   stopifnot(is.logical(check_first))
 
   # Get package pids
-  package <- arcticdatautils::get_package(mn, resource_map_pid)
+  package <- arcticdatautils::get_package(mn, resource_map_pid, file_names = TRUE)
 
   # Get child package pids
   if (download_child_packages) {
