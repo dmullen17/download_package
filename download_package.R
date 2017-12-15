@@ -73,12 +73,12 @@ download_package <- function(mn,
 
   # Get package pids
   package <- arcticdatautils::get_package(mn, resource_map_pid, file_names = TRUE)
+  child_packages <- list()
 
   # Get child package pids
   if (download_child_packages) {
     # Check that child packages exist
     if (length(package$child_packages) != 0) {
-      child_packages <- list()
       n <- length(package$child_packages)
       progressBar <- txtProgressBar(min = 0, max = n, style = 3)
       message("\nDownloading identifiers from child packages")
@@ -99,15 +99,12 @@ download_package <- function(mn,
     data_pids <- package$data
   }
 
-  # Select data pids from child packages, if they exist
-  if (exists("child_packages")) {
-    for (i in seq_len(length(child_packages))) {
-      # Check if child package contains data
-      if (length(child_packages[[i]]$data != 0)) {
-        data_pids <- c(data_pids, child_packages[[i]]$data)
-      }
-    }
-  }
+  # Select data pids from child packages and add to data_pids
+  child_data_pids <- unlist(lapply(child_packages, function(package) {
+      return(package$data)
+  }))
+
+  data_pids <- c(data_pids, child_data_pids)
 
   # Check that data exists
   if (length(data_pids) == 0) {
