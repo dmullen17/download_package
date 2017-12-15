@@ -92,7 +92,7 @@ download_package <- function(mn,
   }
 
   # Initialize data pids vector
-  data_pids <- c()
+  data_pids <- vector("character")
 
   # Select data pids from initial package, if they exist
   if (length(package$data) != 0) {
