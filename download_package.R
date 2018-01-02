@@ -169,8 +169,23 @@ download_package <- function(mn,
       warning(call. = FALSE,
               paste0("The file ", out_path, " already exists. Skipping download."))
     } else {
-      dataObj <- dataone::getObject(mn, data_pids[i])
-      writeBin(dataObj, out_path)
+      dataObj <- tryCatch(dataone::getObject(mn, data_pids[i]),
+                          error = function(e) {return("getObject_error")})
+      
+      # If getObject failed, try 3 more times 
+      if (dataObj == "getObject_error") { 
+        n_getObject_attempts = 0
+        while (dataObj == "getObject_error" & n_getObject_attempts < 3) {
+          dataObj <- tryCatch(dataone::getObject(mn, data_pids[i], check = check_first),
+                              error=function(e) {return("getObject_error")})
+          n_getObject_attempts = n_getObject_attempts + 1
+        }
+      }
+      
+      tryCatch(writeBin(dataObj, out_path), error = function(e) {
+        message(paste0("\n Unable to download ", file_name, ". Please download manually or
+                       contact the Arctic Data Center for assistance."))
+        })
     }
 
     setTxtProgressBar(progressBar, i)
