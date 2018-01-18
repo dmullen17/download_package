@@ -183,9 +183,9 @@ download_package <- function(mn,
                           error = function(e) {return("getObject_error")})
       
       # If getObject failed, try 3 more times 
-      if (dataObj == "getObject_error") { 
+      if (dataObj[1] == "getObject_error") { 
         n_getObject_attempts = 0
-        while (dataObj == "getObject_error" & n_getObject_attempts < 3) {
+        while (dataObj[1] == "getObject_error" & n_getObject_attempts < 3) {
           dataObj <- tryCatch(dataone::getObject(mn, data_pids[i], check = check_first),
                               error=function(e) {return("getObject_error")})
           n_getObject_attempts = n_getObject_attempts + 1
