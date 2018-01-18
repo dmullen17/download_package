@@ -119,6 +119,16 @@ download_package <- function(mn,
   if (length(data_pids) == 0) {
     stop("No data selected.  Double check the package you entered contains data files")
   }
+  
+  # Create filename prefixes for child packages 
+  if (prefix_file_names) {
+    child_filename_prefixes <- unlist(lapply(child_packages, function(package) {
+      return(rep(gsub('[^[:alnum:]]', '_', package$metadata),
+                 length(package$data)))
+    }))
+  }
+  
+  filename_prefixes <- c(filename_prefixes, child_filename_prefixes)
 
   # Check total download size
   if (check_download_size) {
