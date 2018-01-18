@@ -35,6 +35,7 @@ get_package_size <- function(node, package_identifier, formatType = "*") {
 #' @param download_directory (character) The path of the directory to download the package to. Defaults to the current working directory.
 #' @param check_download_size (logical) Optional.  Whether to check the total download size before continuing.  Setting this to FALSE speeds up the function, especially when the package has many elements.
 #' @param download_child_packages (logical) Optional.  Whether to download data from child packages of the selected package.
+#' @param prefix_file_names (logical) Optional.  Whether to prefix file names with the package metadata identifier.  This is useful when downloading files from multiple packages to one directory.
 #' @param check_first (logical) Optional. Whether to check the PIDs passed in as aruments exist on the MN before continuing. Checks that objects exist and are of the right format type. Setting this to FALSE speeds up the function, especially when the package has many elements.
 #'
 #' @example
@@ -50,6 +51,7 @@ download_package <- function(mn,
                              download_directory = getwd(),
                              check_download_size = TRUE,
                              download_child_packages = TRUE,
+                             prefix_file_names = FALSE,
                              check_first = TRUE) {
   #' TODO: Make mn argument a character of "ADC", "KNB", etc. with switch statements based on node? -- probably overkill
   #' TODO: How many child levels should it support? -- 3 or 4 max
@@ -99,6 +101,11 @@ download_package <- function(mn,
   # Select data pids from initial package, if they exist
   if (length(package$data) != 0) {
     data_pids <- package$data
+    # Create filename prefixes
+    if (prefix_file_names) {
+      prefix_metadata_pid <- gsub('[^[:alnum:]]', '_', package$metadata)
+      filename_prefixes <- rep(prefix_metadata_pid, length(package$data))
+    }
   }
 
   # Select data pids from child packages and add to data_pids
@@ -163,6 +170,9 @@ download_package <- function(mn,
 
   lapply(seq_len(n_data_objects), function(i) {
     file_name <- ifelse(is.na(file_names[i]), gsub('[^[:alnum:]]', '_', data_pids[i]), file_names[i])
+    if (prefix_file_names) {
+      file_name <- paste0(filename_prefixes[i], "__", file_names[i])
+    }
     out_path <- file.path(download_directory, file_name)
 
     if (file.exists(out_path)) {
