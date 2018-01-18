@@ -41,7 +41,7 @@ get_package_size <- function(node, package_identifier, formatType = "*") {
 #' \dontrun{
 #' cn <- CNode("PROD")
 #' mn <- getMNode(cn, "urn:node:ARCTIC")
-#' downloadPackage(mn, "resource_map_urn:uuid:2b4e4174-4e4b-4a46-8ab0-cc032eda8269")
+#' download_package(mn, "resource_map_urn:uuid:2b4e4174-4e4b-4a46-8ab0-cc032eda8269")
 #' }
 #'
 #' @export
