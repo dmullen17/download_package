@@ -53,11 +53,8 @@ download_package <- function(mn,
                              download_child_packages = TRUE,
                              prefix_file_names = FALSE,
                              check_first = TRUE) {
-  #' TODO: Make mn argument a character of "ADC", "KNB", etc. with switch statements based on node? -- probably overkill
-  #' TODO: How many child levels should it support? -- 3 or 4 max
-  #' TODO: Should non-authenticated user warning messages for get_package and getSystemMetdata be suppressed? -- looks like Bryce removed these
+  #' TODO: How many child levels should it support? -- currently one. 3 or 4 max
   #' TODO: resource_map_pid argument accepts metadata pids - could change to not accept metadata pids
-  #' TODO: would be ideal not to have to call getSystemMetadata once for each file name.  Could remove check_download_size from arguments (not optional) - this would reduce getSystemMetadata calls in half, assuming they are necessary to return the fileNames
 
   # Stop if the user doesn't have the pbapply package installed
   if (!requireNamespace("pbapply")) {
