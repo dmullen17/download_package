@@ -20,6 +20,20 @@ get_package_size <- function(node, package_identifier, formatType = "*") {
   sum(as.integer(size_query$size))
 }
 
+#' Remove special characters from a package identifier for use as a filename prefix 
+#' Helper function for the 'download_package' function
+#'
+#' @param metadata_pid The metadata identifier for a dataOne package 
+#' 
+#' @return (character) The formatted metadata identifer 
+pid_to_prefix <- function(metadata_pid) {
+  metadata_pid <- gsub(":", ";", metadata_pid)
+  metadata_pid <- gsub("\\/", "_", metadata_pid)
+  metadata_pid <- gsub(".", "$", metadata_pid)
+  
+  return(metadata_pid)
+}
+
 #' Download a Data Package
 #'
 #' This function downloads all of the Data Objects in a Data Package to the local filesystem.
@@ -212,3 +226,5 @@ download_package <- function(mn,
 
   return(invisible())
 }
+
+download_packages
