@@ -228,4 +228,15 @@ download_package <- function(mn,
   return(invisible())
 }
 
-download_packages
+download_packages <- function(mn, resource_map_pids, ...) {
+  
+  stopifnot(all(is.character(resource_map_pids)))
+  stopifnot(length(resource_map_pids) > 0)
+  
+  n_packages <- length(resource_map_pids)
+  
+  lapply(seq_len(n_packages), function(i)
+  {download_package(mn, resource_map_pid = resource_map_pids[i], ...)})
+  
+  return(invisible())
+}
