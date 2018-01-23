@@ -20,6 +20,20 @@ get_package_size <- function(node, package_identifier, formatType = "*") {
   sum(as.integer(size_query$size))
 }
 
+#' Remove special characters from a package identifier for use as a filename prefix 
+#' Helper function for the 'download_package' function
+#'
+#' @param metadata_pid The metadata identifier for a dataOne package 
+#' 
+#' @return (character) The formatted metadata identifer 
+pid_to_prefix <- function(metadata_pid) {
+  metadata_pid <- gsub(":", ";", metadata_pid)
+  metadata_pid <- gsub("\\/", "_", metadata_pid)
+  metadata_pid <- gsub("\\.", "$", metadata_pid)
+  
+  return(metadata_pid)
+}
+
 #' Download a Data Package
 #'
 #' This function downloads all of the Data Objects in a Data Package to the local filesystem.
@@ -92,15 +106,16 @@ download_package <- function(mn,
     }
   }
 
-  # Initialize data pids vector
+  # Initialize data pids and filename prefixes vectors
   data_pids <- vector("character")
+  filename_prefixes <- vector("character")
 
   # Select data pids from initial package, if they exist
   if (length(package$data) != 0) {
     data_pids <- package$data
     # Create filename prefixes
     if (prefix_file_names) {
-      prefix_metadata_pid <- gsub('[^[:alnum:]]', '_', package$metadata)
+      prefix_metadata_pid <- pid_to_prefix(package$metadata)
       filename_prefixes <- rep(prefix_metadata_pid, length(package$data))
     }
   }
@@ -120,7 +135,7 @@ download_package <- function(mn,
   # Create filename prefixes for child packages 
   if (prefix_file_names) {
     child_filename_prefixes <- unlist(lapply(child_packages, function(package) {
-      return(rep(gsub('[^[:alnum:]]', '_', package$metadata),
+      return(rep(pid_to_prefix(package$metadata),
                  length(package$data)))
     }))
   }
@@ -221,8 +236,15 @@ download_packages <- function(mn, resource_map_pids, ...) {
   n_packages <- length(resource_map_pids)
   
   lapply(seq_len(n_packages), function(i)
+<<<<<<< HEAD
     {download_package(mn, resource_map_pid = resource_map_pids[i], ...)})
   
   return(invisible())
 }
 
+=======
+  {download_package(mn, resource_map_pid = resource_map_pids[i], ...)})
+  
+  return(invisible())
+}
+>>>>>>> pid_to_prefix
