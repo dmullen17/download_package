@@ -236,15 +236,7 @@ download_packages <- function(mn, resource_map_pids, ...) {
   n_packages <- length(resource_map_pids)
   
   lapply(seq_len(n_packages), function(i)
-<<<<<<< HEAD
     {download_package(mn, resource_map_pid = resource_map_pids[i], ...)})
   
   return(invisible())
 }
-
-=======
-  {download_package(mn, resource_map_pid = resource_map_pids[i], ...)})
-  
-  return(invisible())
-}
->>>>>>> pid_to_prefix
