@@ -1,8 +1,72 @@
+#' Remove and substitute special characters in a dataOne identifier 
+#' 
+#' This is a helper function for the 'download_package' function. Remove special
+#' characters from a package identifier for use as a filename prefix. Can be 
+#' generalized for use with any pid. 
+#' 
+#' @author Dominic Mullen, \email{dmullen17@@gmail.com}
+#' 
+#' @param pid (character) The identifier a dataOne object  
+#' 
+#' @return (character) The formatted identifer as a string 
+pid_to_prefix <- function(pid) {
+  pid <- gsub(":", ";", pid)
+  pid <- gsub("\\/", "_", pid)
+  pid <- gsub("\\.", "$", pid)
+  
+  return(pid)
+}
+
+#' Convert excel workbook to multiple csv files 
+#' 
+#' This is a helper function for download_package.
+#' 
+#' @param path (character) File location of the excel workbook.
+#' @param prefix (character) Optional prefix to prepend to the file name. 
+#' 
+#' @author Dominic Mullen \email{dmullen17@@gmail.com}
+#' 
+#' @return (invisible())
+excel_to_csv <- function(path,
+                         prefix = NULL) {
+  stopifnot(file.exists(path))
+  #stopifnot(is.character(prefix))
+  
+  # Stop if the user doesn't have the readxl package installed
+  if (!requireNamespace("readxl")) {
+    stop(call. = FALSE,
+         "The readxl package is required to convert excel workbooks to csv. Please install it and try again.")
+  }
+  
+  # Try to read excel file and split into csvs
+  tryCatch({
+    sheets <- excel_sheets(path)
+    
+    lapply(seq_along(sheets), function(i) {
+      csv = read_excel(path, sheet = sheets[i])
+      
+      if (!is.null(prefix)) {
+        file_path <- file.path(dirname(path), paste0(prefix, sheets[i], ".csv"))
+      } else {
+        file_path <- file.path(dirname(path), paste0(sheets[i], ".csv"))
+      }
+      
+      write.csv(csv, file_path , row.names = FALSE)})
+    
+  },
+  error = function(e) {message("Unable to read in file: ", path)}
+  )
+  
+  return(invisible())
+}
+
 #' Calculate the total size of the Objects in a Data Package
 #'
 #' @param node (MNode/CNode) The Node to query for Object sizes
 #' @param resource_map_pid (character) The identifier of the Data Package's Resource Map
 #' @param formatType (character) Optional. Filter to just Objects of the given formatType. One of METADATA, RESOURCE, or DATA or * for all types
+#'
+#' @author Bryce Mecum 
 #'
 #' @return (numeric) The sum of all Object sizes in the Data Package
 get_package_size <- function(node, package_identifier, formatType = "*") {
@@ -12,26 +76,12 @@ get_package_size <- function(node, package_identifier, formatType = "*") {
                                       "\"+AND+formatType:",
                                       formatType, "&fl=size"),
                                as = "data.frame")
-
+  
   if (nrow(size_query) == 0) {
     return(0)
   }
-
-  sum(as.integer(size_query$size))
-}
-
-#' Remove special characters from a package identifier for use as a filename prefix 
-#' Helper function for the 'download_package' function
-#'
-#' @param metadata_pid The metadata identifier for a dataOne package 
-#' 
-#' @return (character) The formatted metadata identifer 
-pid_to_prefix <- function(metadata_pid) {
-  metadata_pid <- gsub(":", ";", metadata_pid)
-  metadata_pid <- gsub("\\/", "_", metadata_pid)
-  metadata_pid <- gsub("\\.", "$", metadata_pid)
   
-  return(metadata_pid)
+  sum(as.integer(size_query$size))
 }
 
 #' Download a Data Package
@@ -52,6 +102,8 @@ pid_to_prefix <- function(metadata_pid) {
 #' @param prefix_file_names (logical) Optional.  Whether to prefix file names with the package metadata identifier.  This is useful when downloading files from multiple packages to one directory.
 #' @param check_first (logical) Optional. Whether to check the PIDs passed in as aruments exist on the MN before continuing. Checks that objects exist and are of the right format type. Setting this to FALSE speeds up the function, especially when the package has many elements.
 #'
+#' @author Dominic Mullen, \email{dmullen17@@gmail.com}
+#'
 #' @example
 #' \dontrun{
 #' cn <- CNode("PROD")
@@ -66,9 +118,12 @@ download_package <- function(mn,
                              check_download_size = TRUE,
                              download_child_packages = TRUE,
                              prefix_file_names = FALSE,
+                             convert_excel_to_csv = FALSE,
                              check_first = TRUE) {
   #' TODO: How many child levels should it support? -- currently one. 3 or 4 max
   #' TODO: resource_map_pid argument accepts metadata pids - could change to not accept metadata pids
+  #' TODO: Add option for downloading in folder structure that mirrors nesting - rather than only all files in one folder
+  #' TODO: Convert check download size to helper function? 
 
   # Stop if the user doesn't have the pbapply package installed
   if (!requireNamespace("pbapply")) {
@@ -89,11 +144,12 @@ download_package <- function(mn,
   child_packages <- list()
 
   # Get child package pids
-  if (download_child_packages) {
+  if (download_child_packages == TRUE) {
     # Check that child packages exist
     if (length(package$child_packages) != 0) {
       n_child_packages <- length(package$child_packages)
       progressBar <- txtProgressBar(min = 0, max = n_child_packages, style = 3)
+      
       message("\nDownloading identifiers from child packages...")
 
       # Loop through child packages and extract pids using get_package()
@@ -113,11 +169,6 @@ download_package <- function(mn,
   # Select data pids from initial package, if they exist
   if (length(package$data) != 0) {
     data_pids <- package$data
-    # Create filename prefixes
-    if (prefix_file_names) {
-      prefix_metadata_pid <- pid_to_prefix(package$metadata)
-      filename_prefixes <- rep(prefix_metadata_pid, length(package$data))
-    }
   }
 
   # Select data pids from child packages and add to data_pids
@@ -132,16 +183,15 @@ download_package <- function(mn,
     stop("No data selected.  Double check the package you entered contains data files")
   }
   
-  # Create filename prefixes for child packages 
-  if (prefix_file_names) {
-    child_filename_prefixes <- unlist(lapply(child_packages, function(package) {
-      return(rep(pid_to_prefix(package$metadata),
-                 length(package$data)))
+  # Create filename prefixes 
+  all_packages <- c(package, child_packages)
+  if (prefix_file_names == TRUE) {
+    filename_prefixes <- unlist(lapply(all_packages, function(package) {
+      prefix <- pid_to_prefix(all_packages$metadata)
+      return(rep(prefix, length(all_packages$data)))
     }))
   }
   
-  filename_prefixes <- c(filename_prefixes, child_filename_prefixes)
-
   # Check total download size
   if (check_download_size) {
     child_package_resource_map_pids <- lapply(child_packages, function(package) {
@@ -191,8 +241,10 @@ download_package <- function(mn,
   message(paste0("\nDownloading data objects to ", download_directory))
 
   lapply(seq_len(n_data_objects), function(i) {
+    # If file_names[i] is NA, name it using the pid 
     file_name <- ifelse(is.na(file_names[i]), gsub('[^[:alnum:]]', '_', data_pids[i]), file_names[i])
-    if (prefix_file_names) {
+    
+    if (prefix_file_names == TRUE) {
       file_name <- paste0(filename_prefixes[i], "__", file_names[i])
     }
     out_path <- file.path(download_directory, file_name)
@@ -201,25 +253,29 @@ download_package <- function(mn,
       warning(call. = FALSE,
               paste0("The file ", out_path, " already exists. Skipping download."))
     } else {
-      dataObj <- tryCatch(dataone::getObject(mn, data_pids[i]),
-                          error = function(e) {return("getObject_error")})
+      # Attempt to download object up to 3 times  
+      n_tries <- 0
+      dataObj <- "download_error"
       
-      # If getObject failed, try 3 more times 
-      if (dataObj[1] == "getObject_error") { 
-        n_getObject_attempts = 0
-        while (dataObj[1] == "getObject_error" & n_getObject_attempts < 3) {
-          dataObj <- tryCatch(dataone::getObject(mn, data_pids[i], check = check_first),
-                              error=function(e) {return("getObject_error")})
-          n_getObject_attempts = n_getObject_attempts + 1
-        }
+      while (dataObj[1] == "download_error" & n_tries < 3) {
+        dataObj <- tryCatch(dataone::getObject(mn,
+                                               data_pids[i],
+                                               check = check_first),
+                             error = function(e) {return("download_error")})
+        n_tries <- n_tries + 1
       }
       
       tryCatch(writeBin(dataObj, out_path), error = function(e) {
         message(paste0("\n Unable to download ", file_name, ". Please download manually or
                        contact the Arctic Data Center for assistance."))
-        })
+      })
+      
+      # Convert excel workbooks to csv
+      if (prefix_file_names == TRUE & convert_excel_to_csv == TRUE) {
+        excel_to_csv(out_path, filename_prefixes[i])
+      }
+      
     }
-
     setTxtProgressBar(progressBar, i)
   })
 
@@ -246,6 +302,8 @@ download_package <- function(mn,
 #' @param download_child_packages (logical) Optional.  Whether to download data from child packages of the selected package.
 #' @param prefix_file_names (logical) Optional.  Whether to prefix file names with the package metadata identifier.  This is useful when downloading files from multiple packages to one directory.
 #' @param check_first (logical) Optional. Whether to check the PIDs passed in as aruments exist on the MN before continuing. Checks that objects exist and are of the right format type. Setting this to FALSE speeds up the function, especially when the package has many elements.
+#'
+#' @author Dominic Mullen, \email{dmullen17@@gmail.com}
 #'
 #' @example
 #' \dontrun{
